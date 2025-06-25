@@ -2,14 +2,18 @@
 
 interface CarouselInputProps {
   inputText: string;
+  pageCount: number;
   onInputChange: (text: string) => void;
+  onPageCountChange: (count: number) => void;
   onGenerate: () => void;
   isGenerating: boolean;
 }
 
 export function CarouselInput({ 
   inputText, 
+  pageCount,
   onInputChange, 
+  onPageCountChange,
   onGenerate, 
   isGenerating 
 }: CarouselInputProps) {
@@ -19,9 +23,13 @@ export function CarouselInput({
         What story do you want to tell?
       </h2>
       
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="relative">
+          <label htmlFor="topic" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Topic
+          </label>
           <textarea
+            id="topic"
             value={inputText}
             onChange={(e) => onInputChange(e.target.value)}
             placeholder="Enter your main topic or theme... (e.g., '5 tips for better productivity', 'How to build a personal brand')"
@@ -30,6 +38,22 @@ export function CarouselInput({
           <div className="absolute bottom-3 right-3 text-sm text-gray-400">
             {inputText.length}/500
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="pageCount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Number of Slides
+          </label>
+          <select
+            id="pageCount"
+            value={pageCount}
+            onChange={(e) => onPageCountChange(parseInt(e.target.value))}
+            className="w-full md:w-48 p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            {[3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+              <option key={num} value={num}>{num} slides</option>
+            ))}
+          </select>
         </div>
         
         <button

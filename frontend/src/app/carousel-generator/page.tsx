@@ -11,6 +11,7 @@ import { exportSlidesAsPDF, exportSlidesAsTXT, copyAllSlides } from '@/component
 
 export default function CarouselGenerator() {
   const [inputText, setInputText] = useState('');
+  const [pageCount, setPageCount] = useState(5);
   const [generatedSlides, setGeneratedSlides] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0]);
@@ -24,22 +25,44 @@ export default function CarouselGenerator() {
     setIsGenerating(true);
     
     try {
-      // Simulate API call with mock data for now
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await fetch('http://localhost:5000/api/carousel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userInput: inputText.trim(),
+          pageCount: pageCount
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch from API');
+      }
+
+      const data = await response.json();
+      const slides = data.slides || [];
       
+      if (slides.length === 0) {
+        throw new Error('No slides generated');
+      }
+
+      setGeneratedSlides(slides);
+      setEditedSlides([...slides]);
+      
+    } catch (error) {
+      console.error('Error generating carousel:', error);
+      // Fallback to mock data if API fails
       const mockSlides = [
         `🚀 ${inputText}\n\nSlide 1: Introduction\n\nThis is the opening slide that introduces your main topic and hooks your audience.`,
         `💡 Key Point #1\n\nHere's the first major insight or tip related to your topic. Make it actionable and valuable.`,
         `📈 Key Point #2\n\nThe second important point that builds on the first. Include specific examples or data when possible.`,
         `🎯 Key Point #3\n\nYour third main point that adds depth to your message. Keep it focused and relevant.`,
         `✅ Conclusion\n\nWrap up with a clear call-to-action or summary. Encourage engagement and discussion.`
-      ];
+      ].slice(0, pageCount);
       
       setGeneratedSlides(mockSlides);
       setEditedSlides([...mockSlides]);
-      
-    } catch (error) {
-      console.error('Error generating carousel:', error);
     } finally {
       setIsGenerating(false);
     }
@@ -121,7 +144,9 @@ export default function CarouselGenerator() {
 
           <CarouselInput
             inputText={inputText}
+            pageCount={pageCount}
             onInputChange={setInputText}
+            onPageCountChange={setPageCount}
             onGenerate={generateCarousel}
             isGenerating={isGenerating}
           />
