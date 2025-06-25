@@ -1,8 +1,6 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { CarouselTemplate } from './types';
-import { SlideDisplay } from './SlideDisplay';
-import { createRoot } from 'react-dom/client';
 
 export const exportSlidesAsPDF = async (
   slides: string[],
@@ -91,25 +89,61 @@ export const exportSlidesAsPDF = async (
     const contentContainer = document.createElement('div');
     contentContainer.style.textAlign = 'center';
     contentContainer.style.maxWidth = '600px';
+    contentContainer.style.width = '100%';
+    contentContainer.style.overflow = 'hidden';
 
-    // Create title
+    // Create title with dynamic font sizing
     const titleElement = document.createElement('h1');
-    titleElement.style.fontSize = '36px';
+    const titleLength = title.length;
+    let titleFontSize = '32px';
+    
+    // Adjust title font size based on length
+    if (titleLength > 80) {
+      titleFontSize = '24px';
+    } else if (titleLength > 60) {
+      titleFontSize = '28px';
+    } else if (titleLength > 40) {
+      titleFontSize = '30px';
+    }
+    
+    titleElement.style.fontSize = titleFontSize;
     titleElement.style.fontWeight = 'bold';
     titleElement.style.color = template.pdfStyle.headerColor;
-    titleElement.style.marginBottom = '30px';
+    titleElement.style.marginBottom = '24px';
     titleElement.style.lineHeight = '1.2';
-    titleElement.style.margin = '0 0 30px 0';
+    titleElement.style.margin = '0 0 24px 0';
+    titleElement.style.wordWrap = 'break-word';
+    titleElement.style.overflowWrap = 'break-word';
+    titleElement.style.hyphens = 'auto';
     titleElement.textContent = title;
     contentContainer.appendChild(titleElement);
 
-    // Create body content
+    // Create body content with dynamic font sizing
     if (bodyContent) {
       const bodyElement = document.createElement('div');
-      bodyElement.style.fontSize = '18px';
-      bodyElement.style.lineHeight = '1.6';
+      const bodyLength = bodyContent.length;
+      let bodyFontSize = '16px';
+      
+      // Adjust body font size based on content length
+      if (bodyLength > 800) {
+        bodyFontSize = '14px';
+      } else if (bodyLength > 600) {
+        bodyFontSize = '15px';
+      } else if (bodyLength > 400) {
+        bodyFontSize = '16px';
+      } else {
+        bodyFontSize = '17px';
+      }
+      
+      bodyElement.style.fontSize = bodyFontSize;
+      bodyElement.style.lineHeight = '1.5';
       bodyElement.style.color = template.pdfStyle.textColor;
       bodyElement.style.whiteSpace = 'pre-wrap';
+      bodyElement.style.wordWrap = 'break-word';
+      bodyElement.style.overflowWrap = 'break-word';
+      bodyElement.style.hyphens = 'auto';
+      bodyElement.style.maxHeight = '350px';
+      bodyElement.style.overflow = 'hidden';
       bodyElement.textContent = bodyContent;
       contentContainer.appendChild(bodyElement);
     }
@@ -129,14 +163,21 @@ export const exportSlidesAsPDF = async (
     tempContainer.appendChild(slideElement);
 
     try {
-      // Convert to canvas
+      // Wait a moment for styles to apply
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Convert to canvas with consistent settings
       const canvas = await html2canvas(slideElement, {
         width: 800,
         height: 600,
-        scale: 2,
+        scale: 1.5, // Reduced scale for better consistency
         backgroundColor: null,
         logging: false,
         useCORS: true,
+        allowTaint: true,
+        foreignObjectRendering: false,
+        imageTimeout: 0,
+        removeContainer: true,
       });
 
       // Add to PDF
@@ -144,7 +185,7 @@ export const exportSlidesAsPDF = async (
         pdf.addPage();
       }
       
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0);
       pdf.addImage(imgData, 'PNG', 0, 0, 800, 600);
 
     } catch (error) {
