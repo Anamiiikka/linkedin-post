@@ -3,6 +3,7 @@ export interface CarouselTemplate {
   name: string;
   description: string;
   preview: string;
+  layout: string;
   style: string;
   pdfStyle: {
     background: string;
